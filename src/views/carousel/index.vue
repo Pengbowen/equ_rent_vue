@@ -124,15 +124,9 @@ export default {
     submitUpload() {
       this.$refs.upload.submit();
     },
-    handleRemove(file, fileList) {
-      console.log(file, fileList);
-    },
-    handlePreview(file) {
-      console.log(file);
-    },
+    handleRemove(file, fileList) {},
+    handlePreview(file) {},
     uploadSuccess(response, file, fileList) {
-      console.info(response);
-      console.info("上传成功");
       this.dialogFormVisible = false;
       this.loadData();
       this.fileList = [];
