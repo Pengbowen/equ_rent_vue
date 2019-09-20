@@ -73,7 +73,7 @@ export const constantRoutes = [
       {
         path: 'tree',
         name: 'Tree',
-        component: () => import('@/views/tree/index'),
+        component: () => import('@/views/router_menu/index'),
         meta: { title: '菜单管理', icon: 'tree' }
       }
     ]
