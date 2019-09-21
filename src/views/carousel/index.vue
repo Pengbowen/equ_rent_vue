@@ -14,7 +14,7 @@
         :key="item.name"
         style="width:300px;text-align:center;"
       >
-        <img width="300" height="150" :src="item.src" >
+        <img width="300" height="150" :src="item.src">
       </el-carousel-item>
     </el-carousel>
     <el-button type="primary" style="margin-left:20px" @click="dialogFormVisible = true">
@@ -31,7 +31,7 @@
       <el-table-column prop="src" label="图片访问地址（鼠标移上可预览）">
         <template slot-scope="scope">
           <el-popover trigger="hover" placement="top">
-            <img :src="scope.row.src" style="width:280px;heiht:180px;" >
+            <img :src="scope.row.src" style="width:280px;heiht:180px;">
             <div slot="reference" class="name-wrapper">
               <el-tag size="medium">{{ scope.row.src }}</el-tag>
             </div>

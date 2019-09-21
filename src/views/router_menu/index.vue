@@ -65,70 +65,70 @@
   </div>
 </template>
 <script>
-import * as RouterMenuApi from "../../api/router_api";
-import { MessageBox, Message } from "element-ui";
+import * as RouterMenuApi from '../../api/router_api'
+import { MessageBox, Message } from 'element-ui'
 export default {
   data() {
     return {
       addFormVisible: false,
       menuList: [],
       addForm: {
-        name: "",
-        path: "",
+        name: '',
+        path: '',
         hidden: false,
-        redirect: "",
+        redirect: '',
         alwaysShow: false,
-        component: "",
-        sort: "",
+        component: '',
+        sort: '',
         meta: {
-          title: "",
-          icon: "",
+          title: '',
+          icon: '',
           noCache: false,
           breadcrumb: true
         }
       },
       rules: {}
-    };
+    }
   },
   mounted: function() {
     RouterMenuApi.getList().then(res => {
       if (res.code === 20000) {
-        this.menuList = res.data;
+        this.menuList = res.data
       }
-      console.info(res);
-    });
+      console.info(res)
+    })
   },
   methods: {
     submitForm(formName) {
       this.$refs[formName].validate(valid => {
         if (valid) {
-          console.info(this.addForm);
+          console.info(this.addForm)
           RouterMenuApi.addParentRouter(this.addForm).then(res => {
-            console.info(res);
+            console.info(res)
             if (res.data.code === 20000) {
               this.$message({
-                message: "添加成功",
-                type: "success"
-              });
-              this.menuList.push(res.data.data);
-              this.addFormVisible = false;
+                message: '添加成功',
+                type: 'success'
+              })
+              this.menuList.push(res.data.data)
+              this.addFormVisible = false
             } else {
               this.$message({
-                message: "添加失败",
-                type: "error"
-              });
+                message: '添加失败',
+                type: 'error'
+              })
             }
-          });
+          })
         } else {
-          console.log("error submit!!");
-          return false;
+          console.log('error submit!!')
+          return false
         }
-      });
+      })
     },
     resetForm(formName) {
-      this.$refs[formName].resetFields();
-      this.$refs[formName].resetFields();
+      this.$refs[formName].resetFields()
+      this.$refs[formName].resetFields()
     }
   }
-};
+}
 </script>
