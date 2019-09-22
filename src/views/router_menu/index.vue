@@ -71,8 +71,7 @@
   </div>
 </template>
 <script>
-import * as RouterMenuApi from '../../api/router_api';
-import { MessageBox, Message } from 'element-ui';
+import * as RouterMenuApi from '../../api/router_api'
 export default {
   data() {
     return {
