@@ -17,9 +17,15 @@
       <el-table-column prop="redirect" label="重定向" />
       <el-table-column prop="alwaysShow" label="始终显示" />
       <el-table-column prop="meta.title" label="菜单名称" />
-      <el-table-column prop="meta.icon" label="菜单图标" />
+      <!-- <el-table-column prop="meta.icon" label="菜单图标" />
       <el-table-column prop="meta.breadcrumb" label="面包屑" />
-      <el-table-column prop="meta.noCache" label="禁止缓存" />
+      <el-table-column prop="meta.noCache" label="禁止缓存" />-->
+      <el-table-column fixed="right" label="操作" width="100">
+        <template slot-scope="scope">
+          <el-button type="text" size="small" @click="deleteRouter(scope.row.id)">删除</el-button>
+          <el-button type="text" size="small" @click="editRouter(scope.row)">编辑</el-button>
+        </template>
+      </el-table-column>
     </el-table>
     <el-dialog title="新增菜单路由" :visible.sync="addFormVisible">
       <el-form ref="addForm" :model="addForm" :rules="rules" label-width="100px">
@@ -65,8 +71,8 @@
   </div>
 </template>
 <script>
-import * as RouterMenuApi from '../../api/router_api'
-import { MessageBox, Message } from 'element-ui'
+import * as RouterMenuApi from '../../api/router_api';
+import { MessageBox, Message } from 'element-ui';
 export default {
   data() {
     return {
@@ -91,14 +97,16 @@ export default {
     }
   },
   mounted: function() {
-    RouterMenuApi.getList().then(res => {
-      if (res.code === 20000) {
-        this.menuList = res.data
-      }
-      console.info(res)
-    })
+    this.loadData()
   },
   methods: {
+    loadData() {
+      RouterMenuApi.getList().then(res => {
+        if (res.code === 20000) {
+          this.menuList = res.data
+        }
+      })
+    },
     submitForm(formName) {
       this.$refs[formName].validate(valid => {
         if (valid) {
@@ -128,7 +136,37 @@ export default {
     resetForm(formName) {
       this.$refs[formName].resetFields()
       this.$refs[formName].resetFields()
-    }
+    },
+    deleteRouter(id) {
+      this.$confirm('确认删除此菜单吗？（子菜单一同删除）?', '提示', {
+        confirmButtonText: '确定',
+        cancelButtonText: '取消',
+        type: 'warning'
+      })
+        .then(() => {
+          RouterMenuApi.deleteRouter(id).then(res => {
+            if (res.data.code === 20000) {
+              this.loadData()
+              this.$message({
+                type: 'success',
+                message: '删除成功!'
+              })
+            } else {
+              this.$message({
+                type: 'error',
+                message: '删除失败!'
+              })
+            }
+          })
+        })
+        .catch(() => {
+          this.$message({
+            type: 'info',
+            message: '已取消删除'
+          })
+        })
+    },
+    editRouter(rowData) {}
   }
 }
 </script>
