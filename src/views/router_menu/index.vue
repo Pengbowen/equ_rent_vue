@@ -1,6 +1,11 @@
 <template>
   <div>
-    <el-button type="primary" icon="el-icon-plus" @click="addFormVisible = true">添加一级菜单</el-button>
+    <el-button
+      type="primary"
+      icon="el-icon-plus"
+      style="margin:15px"
+      @click="addFormVisible = true"
+    >添加一级菜单</el-button>
     <el-table
       :data="menuList"
       style="width: 100%;margin-bottom: 20px;"
@@ -20,18 +25,25 @@
       <!-- <el-table-column prop="meta.icon" label="菜单图标" />
       <el-table-column prop="meta.breadcrumb" label="面包屑" />
       <el-table-column prop="meta.noCache" label="禁止缓存" />-->
-      <el-table-column fixed="right" label="操作" width="100">
+      <el-table-column fixed="right" label="操作" width="150">
         <template slot-scope="scope">
+          <el-button
+            v-if="scope.row.children.length > 0"
+            type="text"
+            size="small"
+            @click="deleteRouter(scope.row.id)"
+          >新增子菜单</el-button>
           <el-button type="text" size="small" @click="deleteRouter(scope.row.id)">删除</el-button>
           <el-button type="text" size="small" @click="editRouter(scope.row)">编辑</el-button>
         </template>
       </el-table-column>
     </el-table>
-    <el-dialog title="新增菜单路由" :visible.sync="addFormVisible">
+    <el-dialog
+      :title="addStatus?'新增路由菜单':'编辑路由菜单'"
+      :visible.sync="addFormVisible"
+      @close="closeDialog"
+    >
       <el-form ref="addForm" :model="addForm" :rules="rules" label-width="100px">
-        <el-form-item label="路由名称" hidden prop="pid">
-          <el-input v-model="addForm.pid" />
-        </el-form-item>
         <el-form-item label="路由名称" prop="name">
           <el-input v-model="addForm.name" />
         </el-form-item>
@@ -63,7 +75,7 @@
           <el-switch v-model="addForm.meta.breadcrumb" active-text="显示" inactive-text="不显示" />
         </el-form-item>
         <el-form-item>
-          <el-button type="primary" @click="submitForm('addForm')">立即添加</el-button>
+          <el-button type="primary" @click="submitForm('addForm')">{{ addStatus?'立即添加':'立即修改' }}</el-button>
           <el-button @click="resetForm('addForm')">重置</el-button>
         </el-form-item>
       </el-form>
@@ -71,13 +83,16 @@
   </div>
 </template>
 <script>
-import * as RouterMenuApi from '../../api/router_api'
+import * as RouterMenuApi from '../../api/router_api';
 export default {
   data() {
     return {
-      addFormVisible: false,
+      addFormVisible: false, // 弹窗可见状态控制
+      addStatus: true, // 弹窗是否新增状态还是编辑状态,如果是新增状态为true,否则为flase
       menuList: [],
       addForm: {
+        id: '',
+        pid: '',
         name: '',
         path: '',
         hidden: false,
@@ -103,29 +118,18 @@ export default {
       RouterMenuApi.getList().then(res => {
         if (res.code === 20000) {
           this.menuList = res.data
+          console.info(this.menuList)
         }
       })
     },
     submitForm(formName) {
       this.$refs[formName].validate(valid => {
         if (valid) {
-          console.info(this.addForm)
-          RouterMenuApi.addParentRouter(this.addForm).then(res => {
-            console.info(res)
-            if (res.data.code === 20000) {
-              this.$message({
-                message: '添加成功',
-                type: 'success'
-              })
-              this.menuList.push(res.data.data)
-              this.addFormVisible = false
-            } else {
-              this.$message({
-                message: '添加失败',
-                type: 'error'
-              })
-            }
-          })
+          if (this.addStatus) {
+            this.addRouter()
+          } else {
+            this.updateRouter()
+          }
         } else {
           console.log('error submit!!')
           return false
@@ -134,7 +138,40 @@ export default {
     },
     resetForm(formName) {
       this.$refs[formName].resetFields()
-      this.$refs[formName].resetFields()
+    },
+    addRouter() {
+      RouterMenuApi.addParentRouter(this.addForm).then(res => {
+        if (res.data.code === 20000) {
+          this.$message({
+            message: '添加成功',
+            type: 'success'
+          })
+          this.menuList.push(res.data.data)
+          this.addFormVisible = false
+        } else {
+          this.$message({
+            message: '添加失败',
+            type: 'error'
+          })
+        }
+      })
+    },
+    updateRouter() {
+      RouterMenuApi.updateRouter(this.addForm).then(res => {
+        if (res.data.code === 20000) {
+          this.$message({
+            message: '修改成功',
+            type: 'success'
+          })
+          this.loadData()
+          this.addFormVisible = false
+        } else {
+          this.$message({
+            message: '修改失败',
+            type: 'error'
+          })
+        }
+      })
     },
     deleteRouter(id) {
       this.$confirm('确认删除此菜单吗？（子菜单一同删除）?', '提示', {
@@ -165,7 +202,18 @@ export default {
           })
         })
     },
-    editRouter(rowData) {}
+    editRouter(rowData) {
+      this.addStatus = false
+      // 深拷贝对象
+      this.addForm = JSON.parse(JSON.stringify(rowData))
+      this.addFormVisible = true
+    },
+    closeDialog() {
+      if (!this.addStatus) {
+        this.addStatus = true
+        this.$refs['addForm'].resetFields()
+      }
+    }
   }
 }
 </script>
