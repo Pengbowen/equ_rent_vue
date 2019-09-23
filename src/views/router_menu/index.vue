@@ -27,9 +27,31 @@
       <el-table-column prop="meta.noCache" label="禁止缓存" />-->
       <el-table-column fixed="right" label="操作" width="200">
         <template slot-scope="scope">
-          <el-button type="text" size="small" @click="addChildRouter(scope.row)">新增子菜单</el-button>
-          <el-button type="text" size="small" @click="deleteRouter(scope.row.id)">删除</el-button>
-          <el-button type="text" size="small" @click="editRouter(scope.row)">编辑</el-button>
+          <el-button-group>
+            <el-button
+              title="添加子菜单"
+              icon="el-icon-plus"
+              size="mini"
+              @click="addChildRouter(scope.row)"
+            />
+            <el-button
+              type="primary"
+              size="mini"
+              title="编辑"
+              icon="el-icon-edit"
+              @click="editRouter(scope.row)"
+            />
+            <el-button
+              type="danger"
+              title="删除"
+              icon="el-icon-delete"
+              size="mini"
+              @click="deleteRouter(scope.row.id)"
+            />
+          </el-button-group>
+          <!-- <el-button type="text" size="small" @click="addChildRouter(scope.row)">新增子菜单</el-button>
+          <el-button type="text" size="small" >编辑</el-button>
+          <el-button type="warning" size="small" >删除</el-button>-->
         </template>
       </el-table-column>
     </el-table>
@@ -84,147 +106,147 @@
   </div>
 </template>
 <script>
-import * as RouterMenuApi from '../../api/router_api';
+import * as RouterMenuApi from "../../api/router_api";
 export default {
   data() {
     return {
       addFormVisible: false, // 弹窗可见状态控制
       addStatus: true, // 弹窗是否新增状态还是编辑状态,如果是新增状态为true,否则为flase
       addChildStatus: false, // 是否是增加子菜单状态
-      currentRouterName: '',
+      currentRouterName: "",
       menuList: [],
       addForm: {
-        id: '',
-        pid: '',
-        name: '',
-        path: '',
+        id: "",
+        pid: "",
+        name: "",
+        path: "",
         hidden: false,
-        redirect: '',
+        redirect: "",
         alwaysShow: false,
-        component: '',
-        sort: '',
+        component: "",
+        sort: "",
         meta: {
-          title: '',
-          icon: '',
+          title: "",
+          icon: "",
           noCache: false,
           breadcrumb: true
         }
       },
       rules: {}
-    }
+    };
   },
   mounted: function() {
-    this.loadData()
+    this.loadData();
   },
   methods: {
     loadData() {
       RouterMenuApi.getList().then(res => {
         if (res.code === 20000) {
-          this.menuList = res.data
-          console.info(this.menuList)
+          this.menuList = res.data;
+          console.info(this.menuList);
         }
-      })
+      });
     },
     submitForm(formName) {
       this.$refs[formName].validate(valid => {
         if (valid) {
           if (this.addStatus) {
-            this.addRouter()
+            this.addRouter();
           } else {
-            this.updateRouter()
+            this.updateRouter();
           }
         } else {
-          console.log('error submit!!')
-          return false
+          console.log("error submit!!");
+          return false;
         }
-      })
+      });
     },
     resetForm(formName) {
-      this.$refs[formName].resetFields()
+      this.$refs[formName].resetFields();
     },
     addRouter() {
       RouterMenuApi.addParentRouter(this.addForm).then(res => {
         if (res.data.code === 20000) {
           this.$message({
-            message: '添加成功',
-            type: 'success'
-          })
-          this.loadData()
-          this.addFormVisible = false
+            message: "添加成功",
+            type: "success"
+          });
+          this.loadData();
+          this.addFormVisible = false;
         } else {
           this.$message({
-            message: '添加失败',
-            type: 'error'
-          })
+            message: "添加失败",
+            type: "error"
+          });
         }
-      })
+      });
     },
     updateRouter() {
       RouterMenuApi.updateRouter(this.addForm).then(res => {
         if (res.data.code === 20000) {
           this.$message({
-            message: '修改成功',
-            type: 'success'
-          })
-          this.loadData()
-          this.addFormVisible = false
+            message: "修改成功",
+            type: "success"
+          });
+          this.loadData();
+          this.addFormVisible = false;
         } else {
           this.$message({
-            message: '修改失败',
-            type: 'error'
-          })
+            message: "修改失败",
+            type: "error"
+          });
         }
-      })
+      });
     },
     deleteRouter(id) {
-      this.$confirm('确认删除此菜单吗？（子菜单一同删除）?', '提示', {
-        confirmButtonText: '确定',
-        cancelButtonText: '取消',
-        type: 'warning'
+      this.$confirm("确认删除此菜单吗？（子菜单一同删除）?", "提示", {
+        confirmButtonText: "确定",
+        cancelButtonText: "取消",
+        type: "warning"
       })
         .then(() => {
           RouterMenuApi.deleteRouter(id).then(res => {
             if (res.data.code === 20000) {
-              this.loadData()
+              this.loadData();
               this.$message({
-                type: 'success',
-                message: '删除成功!'
-              })
+                type: "success",
+                message: "删除成功!"
+              });
             } else {
               this.$message({
-                type: 'error',
-                message: '删除失败!'
-              })
+                type: "error",
+                message: "删除失败!"
+              });
             }
-          })
+          });
         })
         .catch(() => {
           this.$message({
-            type: 'info',
-            message: '已取消删除'
-          })
-        })
+            type: "info",
+            message: "已取消删除"
+          });
+        });
     },
     editRouter(rowData) {
-      this.addStatus = false
+      this.addStatus = false;
       // 深拷贝对象
-      this.addForm = JSON.parse(JSON.stringify(rowData))
-      this.addFormVisible = true
+      this.addForm = JSON.parse(JSON.stringify(rowData));
+      this.addFormVisible = true;
     },
     addChildRouter(rowData) {
-      this.addStatus = true
-      this.addChildStatus = true
-      this.currentRouterName = rowData.name
-      this.addForm.pid = rowData.id
-      this.addFormVisible = true
+      this.addStatus = true;
+      this.addChildStatus = true;
+      this.currentRouterName = rowData.name;
+      this.addForm.pid = rowData.id;
+      this.addFormVisible = true;
     },
     closeDialog() {
-      this.addStatus = true
-      this.$refs['addForm'].resetFields()
-      this.addChildStatus = false
-      this.currentRouterName = '';
-      this.addForm.pid = '';
+      this.addStatus = true;
+      this.$refs["addForm"].resetFields();
+      this.addChildStatus = false;
+      this.currentRouterName = "";
+      this.addForm.pid = "";
     }
   }
-}
+};
 </script>
