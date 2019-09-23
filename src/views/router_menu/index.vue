@@ -25,14 +25,9 @@
       <!-- <el-table-column prop="meta.icon" label="菜单图标" />
       <el-table-column prop="meta.breadcrumb" label="面包屑" />
       <el-table-column prop="meta.noCache" label="禁止缓存" />-->
-      <el-table-column fixed="right" label="操作" width="150">
+      <el-table-column fixed="right" label="操作" width="200">
         <template slot-scope="scope">
-          <el-button
-            v-if="scope.row.children.length > 0"
-            type="text"
-            size="small"
-            @click="deleteRouter(scope.row.id)"
-          >新增子菜单</el-button>
+          <el-button type="text" size="small" @click="addChildRouter(scope.row)">新增子菜单</el-button>
           <el-button type="text" size="small" @click="deleteRouter(scope.row.id)">删除</el-button>
           <el-button type="text" size="small" @click="editRouter(scope.row)">编辑</el-button>
         </template>
@@ -44,6 +39,12 @@
       @close="closeDialog"
     >
       <el-form ref="addForm" :model="addForm" :rules="rules" label-width="100px">
+        <el-form-item v-if="addChildStatus" label="父路由名称">
+          <el-input v-model="currentRouterName" disabled="disabled" />
+        </el-form-item>
+        <el-form-item label="父路由ID" hidden prop="pid">
+          <el-input v-model="addForm.pid" />
+        </el-form-item>
         <el-form-item label="路由名称" prop="name">
           <el-input v-model="addForm.name" />
         </el-form-item>
@@ -89,6 +90,8 @@ export default {
     return {
       addFormVisible: false, // 弹窗可见状态控制
       addStatus: true, // 弹窗是否新增状态还是编辑状态,如果是新增状态为true,否则为flase
+      addChildStatus: false, // 是否是增加子菜单状态
+      currentRouterName: '',
       menuList: [],
       addForm: {
         id: '',
@@ -146,7 +149,7 @@ export default {
             message: '添加成功',
             type: 'success'
           })
-          this.menuList.push(res.data.data)
+          this.loadData()
           this.addFormVisible = false
         } else {
           this.$message({
@@ -208,11 +211,19 @@ export default {
       this.addForm = JSON.parse(JSON.stringify(rowData))
       this.addFormVisible = true
     },
+    addChildRouter(rowData) {
+      this.addStatus = true
+      this.addChildStatus = true
+      this.currentRouterName = rowData.name
+      this.addForm.pid = rowData.id
+      this.addFormVisible = true
+    },
     closeDialog() {
-      if (!this.addStatus) {
-        this.addStatus = true
-        this.$refs['addForm'].resetFields()
-      }
+      this.addStatus = true
+      this.$refs['addForm'].resetFields()
+      this.addChildStatus = false
+      this.currentRouterName = '';
+      this.addForm.pid = '';
     }
   }
 }
