@@ -1,5 +1,11 @@
 <template>
   <div>
+    <el-button
+      type="primary"
+      icon="el-icon-plus"
+      style="margin:15px"
+      @click="form.visiable = true"
+    >添加类别</el-button>
     <el-table
       :data="categoryList"
       style="width: 100%;margin-bottom: 20px;"
@@ -41,36 +47,120 @@
         </template>
       </el-table-column>
     </el-table>
+
+    <el-dialog title="新增类别" :visible.sync="form.visiable" @close="closeDialog">
+      <el-form ref="dialogForm" :model="form.formData" :rules="rules" label-width="100px">
+        <el-form-item label="类别名称" prop="name">
+          <el-input v-model="form.formData.name" />
+        </el-form-item>
+        <el-form-item label="排序" prop="sort">
+          <el-input v-model="form.formData.sort" />
+        </el-form-item>
+        <el-form-item label="描述" prop="description">
+          <el-input v-model="form.formData.description" />
+        </el-form-item>
+        <el-form-item label="图片" prop="component">
+          <el-upload
+            class="avatar-uploader"
+            action="https://jsonplaceholder.typicode.com/posts/"
+            :show-file-list="false"
+            :on-success="handleAvatarSuccess"
+            :before-upload="beforeAvatarUpload"
+          >
+            <img v-if="imageUrl" :src="imageUrl" class="avatar" >
+            <i v-else class="el-icon-plus avatar-uploader-icon" />
+          </el-upload>
+        </el-form-item>
+        <el-form-item>
+          <el-button type="primary" @click="submitForm('addForm')">{{ addStatus?'立即添加':'立即修改' }}</el-button>
+          <el-button @click="resetForm('addForm')">重置</el-button>
+        </el-form-item>
+      </el-form>
+    </el-dialog>
   </div>
 </template>
 <script>
-import * as CategoryApi from "../../api/category_api";
+import * as CategoryApi from '../../api/category_api';
 export default {
   data() {
     return {
-      categoryList: []
-    };
+      categoryList: [],
+      form: {
+        status: 0, // 0-新增父类别状态 1-新增子类别状态 2-编辑状态
+        visiable: false,
+        formData: {
+          id: '',
+          pid: '',
+          sort: '',
+          name: '',
+          description: '',
+          picture: '',
+          children: []
+        }
+      },
+      imageUrl: ''
+    }
   },
   mounted() {
-    this.loadData();
+    this.loadData()
   },
   methods: {
     loadData() {
       CategoryApi.getList().then(res => {
         if (res.data.code === 20000) {
-          this.categoryList = res.data.data;
+          this.categoryList = res.data.data
         } else {
           this.$message({
-            message: "加载失败",
-            type: "error"
-          });
+            message: '加载失败',
+            type: 'error'
+          })
         }
-      });
+      })
     },
     edit(rowData) {},
     delete(id) {},
     add() {},
-    addChild(rowData) {}
+    addChild(rowData) {},
+    handleAvatarSuccess(res, file) {
+      this.imageUrl = URL.createObjectURL(file.raw)
+    },
+    beforeAvatarUpload(file) {
+      const isJPG = file.type === 'image/jpeg';
+      const isLt2M = file.size / 1024 / 1024 < 2
+
+      if (!isJPG) {
+        this.$message.error('上传头像图片只能是 JPG 格式!')
+      }
+      if (!isLt2M) {
+        this.$message.error('上传头像图片大小不能超过 2MB!')
+      }
+      return isJPG && isLt2M
+    }
   }
-};
+}
 </script>
+<style>
+.avatar-uploader .el-upload {
+  border: 1px dashed #d9d9d9;
+  border-radius: 6px;
+  cursor: pointer;
+  position: relative;
+  overflow: hidden;
+}
+.avatar-uploader .el-upload:hover {
+  border-color: #409eff;
+}
+.avatar-uploader-icon {
+  font-size: 28px;
+  color: #8c939d;
+  width: 178px;
+  height: 178px;
+  line-height: 178px;
+  text-align: center;
+}
+.avatar {
+  width: 178px;
+  height: 178px;
+  display: block;
+}
+</style>
