@@ -65,6 +65,8 @@
             action="https://jsonplaceholder.typicode.com/posts/"
             :show-file-list="false"
             :on-success="handleAvatarSuccess"
+            :auto-upload="false"
+            :on-change="beforeAvatarUpload"
             :before-upload="beforeAvatarUpload"
           >
             <img v-if="imageUrl" :src="imageUrl" class="avatar" >
@@ -72,7 +74,7 @@
           </el-upload>
         </el-form-item>
         <el-form-item>
-          <el-button type="primary" @click="submitForm('addForm')">{{ addStatus?'立即添加':'立即修改' }}</el-button>
+          <el-button type="primary" @click="submitForm('addForm')">立即添加</el-button>
           <el-button @click="resetForm('addForm')">重置</el-button>
         </el-form-item>
       </el-form>
@@ -134,6 +136,18 @@ export default {
       if (!isLt2M) {
         this.$message.error('上传头像图片大小不能超过 2MB!')
       }
+      console.info(file)
+
+      let reader = new FileReader()
+      reader.readAsDataURL(file.raw) // 这里也可以直接写参数event.raw
+
+      // 转换成功后的操作，reader.result即为转换后的DataURL ，
+      // 它不需要自己定义，你可以console.log(reader.result)看一下
+      reader.onload = () => {
+        console.log(reader.result)
+      };
+      this.imageUrl = URL.createObjectURL(file.raw)
+      console.info(URL.createObjectURL(file.raw))
       return isJPG && isLt2M
     }
   }
