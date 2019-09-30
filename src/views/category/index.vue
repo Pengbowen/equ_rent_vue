@@ -21,7 +21,7 @@
       <el-table-column prop="picture" label="图片访问地址（鼠标移上可预览）">
         <template slot-scope="scope">
           <el-popover v-if="scope.row.picture" trigger="hover" placement="left">
-            <img :src="scope.row.picture" style="width:200px;heiht:200px;" >
+            <img :src="scope.row.picture" style="width:200px;heiht:200px;" />
             <div slot="reference" class="name-wrapper">
               <el-tag size="medium">{{ scope.row.picture }}</el-tag>
             </div>
@@ -50,20 +50,20 @@
               title="删除"
               icon="el-icon-delete"
               size="mini"
-              @click="delete(scope.row.id)"
+              @click="deleteCategory(scope.row.id)"
             />
           </el-button-group>
         </template>
       </el-table-column>
     </el-table>
 
-    <el-dialog title="新增类别" :visible.sync="form.visiable" @close="closeDialog">
+    <el-dialog title="新增类别" :visible.sync="form.visiable">
       <el-form ref="dialogForm" :model="form.formData" :rules="rules" label-width="100px">
         <el-form-item label="类别名称" prop="name">
           <el-input v-model="form.formData.name" />
         </el-form-item>
         <el-form-item label="排序" prop="sort">
-          <el-input v-model="form.formData.sort" type="number" />
+          <el-input v-model="form.formData.sort" />
         </el-form-item>
         <el-form-item label="描述" prop="description">
           <el-input v-model="form.formData.description" />
@@ -72,7 +72,7 @@
           <el-upload
             ref="upload"
             class="avatar-uploader"
-            action="http://localhost:8080/category/add"
+            action="http://localhost:8080/category/addChild"
             :show-file-list="false"
             :on-success="addSuccess"
             :auto-upload="false"
@@ -80,7 +80,7 @@
             :on-change="beforeAvatarUpload"
             :on-error="addFail"
           >
-            <img v-if="imageUrl" :src="imageUrl" class="avatar" >
+            <img v-if="imageUrl" :src="imageUrl" class="avatar" />
             <i v-else class="el-icon-plus avatar-uploader-icon" />
           </el-upload>
         </el-form-item>
@@ -93,7 +93,7 @@
   </div>
 </template>
 <script>
-import * as CategoryApi from '../../api/category_api';
+import * as CategoryApi from "../../api/category_api";
 export default {
   data() {
     return {
@@ -102,97 +102,127 @@ export default {
         status: 0, // 0-新增父类别状态 1-新增子类别状态 2-编辑状态
         visiable: false,
         formData: {
-          id: '',
-          pid: '',
-          sort: '',
-          name: '',
-          description: '',
-          picture: '',
+          id: "",
+          pid: "",
+          sort: "",
+          name: "",
+          description: "",
+          picture: "",
           children: []
         }
       },
-      imageUrl: '',
+      imageUrl: "",
       rules: {
         name: [
-          { required: true, message: '请输入类别名称', trigger: 'blur' },
-          { min: 1, max: 16, message: '长度在 1 到 16 个字符', trigger: 'blur' }
-        ],
-        sort: [
-          {
-            required: true,
-            type: 'number',
-            message: '请输入排序序号',
-            trigger: 'blur'
-          }
+          { required: true, message: "请输入类别名称", trigger: "blur" },
+          { min: 1, max: 16, message: "长度在 1 到 16 个字符", trigger: "blur" }
         ]
       }
-    }
+    };
   },
   mounted() {
-    this.loadData()
+    this.loadData();
   },
   methods: {
     loadData() {
       CategoryApi.getList().then(res => {
         if (res.data.code === 20000) {
-          this.categoryList = res.data.data
+          this.categoryList = res.data.data;
         } else {
           this.$message({
-            message: '加载失败',
-            type: 'error'
-          })
+            message: "加载失败",
+            type: "error"
+          });
         }
-      })
+      });
     },
-    edit(rowData) {},
-    delete(id) {},
+    edit(rowData) {
+      this.form.formData = JSON.parse(JSON.stringify(rowData));
+      this.imageUrl = rowData.picture;
+      this.form.visiable = true;
+    },
+    deleteCategory(id) {
+      this.$confirm("确认删除此类别吗？（子类别也会一同删除）?", "提示", {
+        confirmButtonText: "确定",
+        cancelButtonText: "取消",
+        type: "warning"
+      })
+        .then(() => {
+          CategoryApi.deleteById(id).then(res => {
+            if (res.data.code === 20000) {
+              this.loadData();
+              this.$message({
+                type: "success",
+                message: "删除成功!"
+              });
+            } else {
+              this.$message({
+                type: "error",
+                message: "删除失败!"
+              });
+            }
+          });
+        })
+        .catch(() => {
+          this.$message({
+            type: "info",
+            message: "已取消删除"
+          });
+        });
+    },
     add() {},
     addChild(rowData) {},
     handleAvatarSuccess(res, file) {
-      this.imageUrl = URL.createObjectURL(file.raw)
-      console.log('上传成功')
+      this.imageUrl = URL.createObjectURL(file.raw);
+      console.log("上传成功");
     },
     beforeAvatarUpload(file) {
-      const isJPG = file.type === 'image/jpeg';
-      const isLt2M = file.size / 1024 / 1024 < 2
+      const isJPG = file.type === "image/jpeg";
+      const isLt2M = file.size / 1024 / 1024 < 2;
 
       if (!isJPG) {
-        this.$message.error('上传头像图片只能是 JPG 格式!')
+        this.$message.error("上传头像图片只能是 JPG 格式!");
       }
       if (!isLt2M) {
-        this.$message.error('上传头像图片大小不能超过 2MB!')
+        this.$message.error("上传头像图片大小不能超过 2MB!");
       }
-      this.imageUrl = URL.createObjectURL(file.raw)
-      return isJPG && isLt2M
+      this.imageUrl = URL.createObjectURL(file.raw);
+      return isJPG && isLt2M;
     },
     submitForm() {
-      this.$refs.upload.submit()
+      if (!this.imageUrl) {
+        CategoryApi.add(this.form.formData).then(res => {
+          this.addSuccess(res.data);
+        });
+      } else {
+        this.$refs.upload.submit();
+      }
     },
     addSuccess(res) {
-      debugger
+      debugger;
       if (res.code === 20000) {
-        this.loadData()
-        this.form.visiable = false
-        this.$refs.dialogForm.resetField()
+        this.loadData();
+        this.form.visiable = false;
+        this.$refs.dialogForm.resetField();
         this.$message({
-          message: '添加成功',
-          type: 'success'
-        })
+          message: "添加成功",
+          type: "success"
+        });
       } else {
         this.$message({
-          message: '添加失败',
-          type: 'error'
-        })
+          message: "添加失败",
+          type: "error"
+        });
       }
     },
     addFail(res) {
       this.$message({
-        message: '添加失败',
-        type: 'error'
-      })
+        message: "添加失败",
+        type: "error"
+      });
     }
   }
-}
+};
 </script>
 <style>
 .avatar-uploader .el-upload {
